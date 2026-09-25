@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Control de Gastos</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <header class="glass-card header-main">
+            <h1>Control Financiero</h1>
+            <p>Análisis de Gastos e Ingresos Proyectados</p>
+            
+            <div class="kpi-container">
+                <div class="kpi-box">
+                    <span class="kpi-title">Gasto Fijo Próximo Mes</span>
+                    <span id="kpiHogar" class="kpi-value">$ 0</span>
+                </div>
+                <div class="kpi-box">
+                    <span class="kpi-title">Tarjeta Próximo Mes</span>
+                    <span id="kpiTarjetaPorc" class="kpi-value">$ 0</span>
+                </div>
+                <div id="kpiMercadoCreditoBox" class="kpi-box" style="display: none;">
+                    <span class="kpi-title">Mercado Crédito Próx. Mes</span>
+                    <span id="kpiMercadoCredito" class="kpi-value">$ 0</span>
+                </div>
+            </div>
+
+            <div class="status-actualizacion" style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.05); font-size: 0.85em; opacity: 0.7; text-align: right;">
+                Último consumo registrado: <span id="fechaActualizacion">Cargando...</span>
+            </div>
+        </header>
+
+        <section class="glass-card">
+            <div class="card-header-actions">
+                <h2>Evolución Mensual</h2>
+                <select id="selectorHistorico" onchange="actualizarGraficoHistorico()">
+                    <option value="todos">Sueldo vs Gastos</option>
+                    <option value="Gasto">Solo Gastos</option>
+                    <option value="Ingreso">Solo Ingresos</option>
+                </select>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="graficoHistorico"></canvas>
+            </div>
+        </section>
+
+        <section class="glass-card table-section">
+            <h2>Cuadro de Mando Mensual</h2>
+            
+            <div class="tabs-container">
+                <button class="tab-btn active" onclick="cambiarTab(event, 'tab-balance')">Balance</button>
+                <button class="tab-btn" onclick="cambiarTab(event, 'tab-medios')">Medios Pago</button>
+                <button class="tab-btn" onclick="cambiarTab(event, 'tab-categorias')">Distribución</button>
+            </div>
+
+            <div id="tab-balance" class="tab-content active">
+                <div class="table-responsive">
+                    <table id="tablaBalance">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th>Sueldo</th>
+                                <th>Gasto Total</th>
+                                <th>Sobrante</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-medios" class="tab-content">
+                <div class="table-responsive">
+                    <table id="tablaMedios">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th>En Cuenta</th>
+                                <th>En Tarjeta</th>
+                                <th>Mercado Crédito</th>
+                                <th>% Tarjeta</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="tab-categorias" class="tab-content">
+                <div class="table-responsive">
+                    <table id="tablaCategorias">
+                        <thead>
+                            <tr>
+                                <th>Mes</th>
+                                <th>Servicios (Hogar)</th>
+                                <th>Servicios Míos</th>
+                                <th>% Hogar/Sueldo</th>
+                                <th>Gastos Placer</th>
+                                <th>% Placer</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-card filter-section">
+            <label for="selectorMesDetalle">Ver detalle del mes:</label>
+            <select id="selectorMesDetalle" onchange="actualizarDetalleMensual()">
+            </select>
+        </section>
+
+        <section class="glass-card">
+            <h2>Distribución por Medio de Pago</h2>
+            <div class="chart-wrapper">
+                <canvas id="graficoMediosPago"></canvas>
+            </div>
+        </section>
+
+        <section class="glass-card">
+            <h2>Análisis por Tipo de Gasto</h2>
+            <div class="chart-wrapper">
+                <canvas id="graficoTiposGasto"></canvas>
+            </div>
+        </section>
+
+        <section class="glass-card cuotas-section">
+            <h2>💳 Alerta de Cuotas Pendientes</h2>
+            <p class="subtitle">En Tarjeta de Crédito</p>
+            <div id="contenedorCuotas" class="cuotas-list"></div>
+        </section>
+
+        <section class="glass-card cuotas-section">
+            <h2>🟡 Alerta de Cuotas Pendientes</h2>
+            <p class="subtitle">En Mercado Crédito</p>
+            <div id="contenedorCuotasMercado" class="cuotas-list"></div>
+        </section>
+
+        <section class="glass-card fijos-section">
+            <h2>🏠 Servicios Hogar y Míos</h2>
+            <p class="subtitle">Último valor registrado Servicios</p>
+            <div id="contenedorFijos" class="fijos-list"></div>
+        </section>
+
+    </div>
+
+    <!-- MODAL DRILL-DOWN PARA VER DETALLE DE GASTOS -->
+    <div id="modalDetalle" class="modal-overlay">
+        <div class="modal-card glass-card">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modalTitulo">Detalle de Gastos</h3>
+                    <p id="modalSubtitulo" class="subtitle" style="margin-bottom:0;">Filtro aplicado</p>
+                </div>
+                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+            </div>
+            
+            <div class="modal-filter">
+                <input type="text" id="modalBuscador" placeholder="Buscar concepto..." oninput="filtrarTablaModal()">
+            </div>
+
+            <div class="table-responsive modal-body">
+                <table id="tablaModalDetalle">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Concepto</th>
+                            <th>Pago</th>
+                            <th>Categoría</th>
+                            <th>Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodyModalDetalle"></tbody>
+                </table>
+            </div>
+
+            <div class="modal-footer">
+                <span>Total Filtrado:</span>
+                <strong id="modalTotalMonto" class="kpi-value">$ 0</strong>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const URL_API = "https://script.google.com/macros/s/AKfycbxgrRahTUilBkV4ZzEwX7UUHO6i08ZuLFtJSJOwwe5NtZ376PatHSVWsvViEknoi3Nz/exec";
+
+    let datosGlobales = [];
+    let registrosModalActuales = [];
+    let graficoHistObj = null;
+    let graficoMediosObj = null;
+    let graficoTiposObj = null;
+
+    async function inicializarDashboard() {
+        try {
+            const respuesta = await fetch(URL_API);
+            const objetoRespuesta = await respuesta.json();
+            
+            if(objetoRespuesta.error) {
+                console.error("Error devuelto por la API:", objetoRespuesta.error);
+                document.getElementById("fechaActualizacion").textContent = "Error de API";
+                return;
+            }
+
+            datosGlobales = (objetoRespuesta.datos || []).map(d => {
+                let mesFormateado = "";
+                if (d.Mes || d.mes) {
+                    const strMes = String(d.Mes || d.mes);
+                    if (strMes.includes("-")) {
+                        mesFormateado = strMes.substring(0, 7);
+                    } else if (strMes.includes("/")) {
+                        const partes = strMes.split("/");
+                        if (partes[2] && partes[1]) {
+                            mesFormateado = `${partes[2].substring(0,4)}-${partes[1].padStart(2, '0')}`;
+                        }
+                    }
+                }
+
+                let fechaRaw = d.Fecha || d.fecha || "";
+                let fechaLimpia = "";
+
+                if (fechaRaw) {
+                    const strFecha = String(fechaRaw);
+                    if (strFecha.includes("T")) {
+                        const parteFecha = strFecha.split("T")[0]; 
+                        const partes = parteFecha.split("-");
+                        if (partes.length === 3) {
+                            fechaLimpia = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                        }
+                    } else if (strFecha.includes("-")) {
+                        const partes = strFecha.split("-");
+                        if (partes.length === 3) {
+                            fechaLimpia = `${partes[2].substring(0,2)}/${partes[1]}/${partes[0]}`;
+                        }
+                    } else {
+                        fechaLimpia = strFecha;
+                    }
+                }
+
+                return {
+                    Fecha: fechaLimpia,
+                    Mes: mesFormateado,
+                    "Gasto/Ingreso": d["Gasto/Ingreso"] || d["gasto/ingreso"] || "",
+                    "Valor de cuota": Number(d["Valor de cuota"] || d["valor de cuota"] || d["Valor Cuota"] || d["valor cuota"] || 0),
+                    "Tipo de pago": d["Tipo de pago"] || d["tipo de pago"] || "",
+                    "Tipo de gasto": d["Tipo de gasto"] || d["tipo de gasto"] || "",
+                    "Concepto": d["Concepto"] || d["concepto"] || ""
+                };
+            }).filter(d => d.Mes !== "");
+
+            const ultimaFecha = objetoRespuesta.ultimaActualizacion || "Sin registros";
+            document.getElementById("fechaActualizacion").textContent = ultimaFecha;
+            
+            poblarSelectorMeses();
+            construirTablaComparativa();
+            construirGraficoHistorico();
+            actualizarDetalleMensual(); 
+
+        } catch (error) {
+            console.error("Error crítico cargando el dashboard:", error);
+            document.getElementById("fechaActualizacion").textContent = "Error de conexión";
+        }
+    }
+
+    const fMoneda = (val) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(val);
+
+    function obtenerMesesUnicos() {
+        let meses = [...new Set(datosGlobales.map(d => d.Mes))];
+        return meses.sort();
+    }
+
+    function poblarSelectorMeses() {
+        const selector = document.getElementById("selectorMesDetalle");
+        const meses = obtenerMesesUnicos();
+        if (!selector) return;
+        selector.innerHTML = "";
+        
+        meses.forEach(mes => {
+            const option = document.createElement("option");
+            option.value = mes;
+            const partes = mes.split("-");
+            option.textContent = `${partes[1]}/${partes[0]}`;
+            selector.appendChild(option);
+        });
+
+        const hoy = new Date();
+        const mesNumero = hoy.getMonth() + 1;
+        const mesActualString = hoy.getFullYear() + "-" + String(mesNumero).padStart(2, '0');
+
+        if (meses.includes(mesActualString)) {
+            selector.value = mesActualString;
+        } else if (meses.length > 0) {
+            selector.value = meses[meses.length - 1];
+        }
+    }
+
+    function construirGraficoHistorico() {
+        const meses = obtenerMesesUnicos();
+        const selector = document.getElementById("selectorHistorico");
+        if (!selector) return;
+        const tipoFiltro = selector.value;
+
+        const datosSueldo = meses.map(mes => {
+            return datosGlobales.filter(d => d.Mes === mes && d["Gasto/Ingreso"] === "Ingreso")
+                                .reduce((acc, curr) => acc + (curr["Valor de cuota"] || 0), 0);
+        });
+
+        const datosGastos = meses.map(mes => {
+            return datosGlobales.filter(d => d.Mes === mes && d["Gasto/Ingreso"] === "Gasto")
+                                .reduce((acc, curr) => acc + (curr["Valor de cuota"] || 0), 0);
+        });
+
+        const canvas = document.getElementById('graficoHistorico');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if(graficoHistObj) graficoHistObj.destroy();
+
+        let datasets = [];
+        if (tipoFiltro === "todos" || tipoFiltro === "Ingreso") {
+            datasets.push({
+                label: 'Sueldo / Ingreso',
+                data: datosSueldo,
+                backgroundColor: 'rgba(244, 143, 177, 0.6)',
+                borderColor: '#f48fb1',
+                borderWidth: 2,
+                borderRadius: 8
+            });
+        }
+        if (tipoFiltro === "todos" || tipoFiltro === "Gasto") {
+            datasets.push({
+                label: 'Gasto Total',
+                data: datosGastos,
+                backgroundColor: 'rgba(216, 27, 96, 0.7)',
+                borderColor: '#d81b60',
+                borderWidth: 2,
+                borderRadius: 8
+            });
+        }
+
+        graficoHistObj = new Chart(ctx, {
+            type: 'bar',
+            data: { 
+                labels: meses.map(m => { const [a, mesNum] = m.split("-"); return `${mesNum}/${a}`; }), 
+                datasets: datasets 
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#fff' } } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#fff' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#fff' } }
+                }
+            }
+        });
+    }
+
+    function actualizarGraficoHistorico() {
+        construirGraficoHistorico();
+    }
+
+    function construirTablaComparativa() {
+        const tbodyBalance = document.querySelector("#tablaBalance tbody");
+        const tbodyMedios = document.querySelector("#tablaMedios tbody");
+        const tbodyCategorias = document.querySelector("#tablaCategorias tbody");
+        
+        if (!tbodyBalance || !tbodyMedios || !tbodyCategorias) return;
+        
+        tbodyBalance.innerHTML = "";
+        tbodyMedios.innerHTML = "";
+        tbodyCategorias.innerHTML = "";
+        
+        const meses = obtenerMesesUnicos();
+
+        let kpiHogarVal = 0;
+        let kpiTarjetaPorcVal = 0;
+        let kpiMercadoCreditoVal = 0;
+        
+        const mesActualSeleccionado = document.getElementById("selectorMesDetalle")?.value || meses[meses.length - 1];
+
+        meses.forEach(mes => {
+            const registrosMes = datosGlobales.filter(d => d.Mes === mes);
+            
+            const sueldo = registrosMes.filter(d => d["Gasto/Ingreso"] === "Ingreso").reduce((a,c) => a + c["Valor de cuota"], 0);
+            const gastoTotal = registrosMes.filter(d => d["Gasto/Ingreso"] === "Gasto").reduce((a,c) => a + c["Valor de cuota"], 0);
+            
+            const enCuenta = registrosMes.filter(d => d["Gasto/Ingreso"] === "Gasto" && String(d["Tipo de pago"]).toLowerCase().includes("cuenta")).reduce((a,c) => a + c["Valor de cuota"], 0);
+            const enTarjeta = registrosMes.filter(d => d["Gasto/Ingreso"] === "Gasto" && String(d["Tipo de pago"]).toLowerCase().includes("tarjeta")).reduce((a,c) => a + c["Valor de cuota"], 0);
+            const enMercadoCredito = registrosMes.filter(d => d["Gasto/Ingreso"] === "Gasto" && String(d["Tipo de pago"]).toLowerCase().includes("mercado")).reduce((a,c) => a + c["Valor de cuota"], 0);
+            
+            const gastoHogar = registrosMes.filter(d => d["Gasto/Ingreso"] === "Gasto" && String(d["Tipo de gasto"]).toLowerCase().trim() === "servicios hogar").reduce((a,c) => a + c["Valor de cuota"], 0);
+            const serviciosMios = registrosMes.filter(d => d["Gasto/Ingreso"] === "Gasto" && (String(d["Tipo de gasto"]).toLowerCase().trim() === "servicios míos" || String(d["Tipo de gasto"]).toLowerCase().trim() === "servicios mios")).reduce((a,c) => a + c["Valor de cuota"], 0);
+            const gastosPlacer = registrosMes.filter(d => d["Gasto/Ingreso"] === "Gasto" && String(d["Tipo de gasto"]).toLowerCase().includes("placer")).reduce((a,c) => a + c["Valor de cuota"], 0);
+
+            let sueldoReferencia = sueldo;
+
+            if (sueldoReferencia === 0) {
+                const [anioAct, mesAct] = mes.split("-");
+                let mesAntNum = parseInt(mesAct, 10) - 1;
+                let anioAntNum = parseInt(anioAct, 10);
+                if (mesAntNum === 0) {
+                    mesAntNum = 12;
+                    anioAntNum -= 1;
+                }
+                const mesAnteriorString = anioAntNum + "-" + String(mesAntNum).padStart(2, '0');
+                
+                sueldoReferencia = datosGlobales
+                    .filter(d => d.Mes === mesAnteriorString && d["Gasto/Ingreso"] === "Ingreso")
+                    .reduce((a, c) => a + c["Valor de cuota"], 0);
+            }
+
+            const porcGastoTarjeta = sueldoReferencia > 0 ? Math.round((enTarjeta / sueldoReferencia) * 100) : 0;
+            const porcHogarSueldo = sueldoReferencia > 0 ? Math.round((gastoHogar / sueldoReferencia) * 100) : 0;
+            const porcPlacer = sueldoReferencia > 0 ? Math.round((gastosPlacer / sueldoReferencia) * 100) : 0;
+            
+            const sobrante = sueldo - gastoTotal;
+
+            if (mes === mesActualSeleccionado) {
+                const [anio, parteMes] = mes.split("-");
+                let mesSigNum = parseInt(parteMes, 10) + 1;
+                let anioSigNum = parseInt(anio, 10);
+                if (mesSigNum > 12) {
+                    mesSigNum = 1;
+                    anioSigNum += 1;
+                }
+                const mesSiguienteString = anioSigNum + "-" + String(mesSigNum).padStart(2, '0');
+
+                const registrosMesSiguiente = datosGlobales.filter(d => d.Mes === mesSiguienteString);
+                
+                kpiTarjetaPorcVal = registrosMesSiguiente
+                    .filter(d => d["Gasto/Ingreso"] === "Gasto" && String(d["Tipo de pago"]).toLowerCase().includes("tarjeta"))
+                    .reduce((a, c) => a + c["Valor de cuota"], 0);
+
+                kpiMercadoCreditoVal = registrosMesSiguiente
+                    .filter(d => d["Gasto/Ingreso"] === "Gasto" && String(d["Tipo de pago"]).toLowerCase().includes("mercado"))
+                    .reduce((a, c) => a + c["Valor de cuota"], 0);
+
+                kpiHogarVal = gastoHogar;
+            }
+
+            const [anio, m] = mes.split("-");
+            const etiquetaMes = `<strong>${m}/${anio}</strong>`;
+            
+            const styleSobrante = sobrante >= 0 
+                ? "background-color: rgba(74, 222, 128, 0.15); color: #4ade80; font-weight: bold;" 
+                : "background-color: rgba(220, 38, 38, 0.2); color: #f87171; font-weight: bold;";
+
+            const trBalance = document.createElement("tr");
+            trBalance.innerHTML = `
+                <td>${etiquetaMes}</td>
+                <td>${fMoneda(sueldo)}</td>
+                <td class="clickable-cell" onclick="abrirModalGastoTotal('${mes}')">${fMoneda(gastoTotal)}</td>
+                <td style="${styleSobrante}">${fMoneda(sobrante)}</td>
+            `;
+            tbodyBalance.appendChild(trBalance);
+
+            const trMedios = document.createElement("tr");
+            trMedios.innerHTML = `
+                <td>${etiquetaMes}</td>
+                <td>${fMoneda(enCuenta)}</td>
+                <td>${fMoneda(enTarjeta)}</td>
+                <td>${fMoneda(enMercadoCredito)}</td>
+                <td>${porcGastoTarjeta}%</td>
+            `;
+            tbodyMedios.appendChild(trMedios);
+
+            const trCategorias = document.createElement("tr");
+            trCategorias.innerHTML = `
+                <td>${etiquetaMes}</td>
+                <td>${fMoneda(gastoHogar)}</td>
+                <td>${fMoneda(serviciosMios)}</td>
+                <td>${porcHogarSueldo}%</td>
+                <td>${fMoneda(gastosPlacer)}</td>
+                <td>${porcPlacer}%</td>
+            `;
+            tbodyCategorias.appendChild(trCategorias);
+        });
+
+        if(document.getElementById("kpiHogar")) document.getElementById("kpiHogar").textContent = fMoneda(kpiHogarVal);
+        if(document.getElementById("kpiTarjetaPorc")) document.getElementById("kpiTarjetaPorc").textContent = fMoneda(kpiTarjetaPorcVal);
+
+        const kpiBoxMercado = document.getElementById("kpiMercadoCreditoBox");
+        if(kpiBoxMercado) {
+            if(kpiMercadoCreditoVal > 0) {
+                document.getElementById("kpiMercadoCredito").textContent = fMoneda(kpiMercadoCreditoVal);
+                kpiBoxMercado.style.display = "flex";
+            } else {
+                kpiBoxMercado.style.display = "none";
+            }
+        }
+    }
+
+    function cambiarTab(evento, tabId) {
+        const botones = document.querySelectorAll(".tab-btn");
+        botones.forEach(btn => btn.classList.remove("active"));
+        
+        const contenidos = document.querySelectorAll(".tab-content");
+        contenidos.forEach(cont => cont.classList.remove("active"));
+        
+        evento.currentTarget.classList.add("active");
+        document.getElementById(tabId).classList.add("active");
+    }
+
+    function actualizarDetalleMensual() {
+        const selector = document.getElementById("selectorMesDetalle");
+        if (!selector || !selector.value) return;
+        const mesSeleccionado = selector.value;
+        const registrosMes = datosGlobales.filter(d => d.Mes === mesSeleccionado && d["Gasto/Ingreso"] === "Gasto");
+
+        const mediosMap = {};
+        registrosMes.forEach(r => {
+            const mp = r["Tipo de pago"] || "Otros";
+            mediosMap[mp] = (mediosMap[mp] || 0) + r["Valor de cuota"];
+        });
+
+        const canvasMedios = document.getElementById('graficoMediosPago');
+        if (canvasMedios) {
+            const ctxMedios = canvasMedios.getContext('2d');
+            if(graficoMediosObj) graficoMediosObj.destroy();
+            graficoMediosObj = new Chart(ctxMedios, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(mediosMap),
+                    datasets: [{
+                        data: Object.values(mediosMap),
+                        backgroundColor: ['#d81b60', '#f48fb1', '#8e24aa', '#00acc1', '#5e35b1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const medioSeleccionado = Object.keys(mediosMap)[index];
+                            abrirModalFiltro(mesSeleccionado, "medio", medioSeleccionado);
+                        }
+                    }
+                }
+            });
+        }
+
+        const tiposMap = {};
+        registrosMes.forEach(r => {
+            const tg = r["Tipo de gasto"] || "General";
+            tiposMap[tg] = (tiposMap[tg] || 0) + r["Valor de cuota"];
+        });
+
+        const canvasTipos = document.getElementById('graficoTiposGasto');
+        if (canvasTipos) {
+            const ctxTipos = canvasTipos.getContext('2d');
+            if(graficoTiposObj) graficoTiposObj.destroy();
+            graficoTiposObj = new Chart(ctxTipos, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(tiposMap),
+                    datasets: [{
+                        label: 'Monto ($)',
+                        data: Object.values(tiposMap),
+                        backgroundColor: 'rgba(255, 255, 255, 0.35)',
+                        borderColor: 'rgba(255, 255, 255, 0.8)',
+                        borderWidth: 1,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#fff' } },
+                        y: { ticks: { color: '#fff' } }
+                    },
+                    onClick: (evt, activeElements) => {
+                        if (activeElements.length > 0) {
+                            const index = activeElements[0].index;
+                            const tipoSeleccionado = Object.keys(tiposMap)[index];
+                            abrirModalFiltro(mesSeleccionado, "tipo", tipoSeleccionado);
+                        }
+                    }
+                }
+            });
+        }
+
+        construirTablaComparativa();
+        calcularProyeccionCuotas(mesSeleccionado);
+        calcularGastosRegulares();
+    }
+
+    function abrirModalGastoTotal(mes) {
+        abrirModalFiltro(mes, "todo", null);
+    }
+
+    function abrirModalFiltro(mes, tipoFiltro, valorFiltro) {
+        const partesMes = mes.split("-");
+        const etiquetaMes = `${partesMes[1]}/${partesMes[0]}`;
+        
+        let titulo = `Gastos de ${etiquetaMes}`;
+        let subtitulo = "Todos los consumos registrados";
+
+        let filtrados = datosGlobales.filter(d => d.Mes === mes && d["Gasto/Ingreso"] === "Gasto");
+
+        if (tipoFiltro === "medio") {
+            titulo = `Gastos: ${valorFiltro}`;
+            subtitulo = `Medio de pago en ${etiquetaMes}`;
+            filtrados = filtrados.filter(d => String(d["Tipo de pago"]).toLowerCase() === String(valorFiltro).toLowerCase());
+        } else if (tipoFiltro === "tipo") {
+            titulo = `Gastos: ${valorFiltro}`;
+            subtitulo = `Categoría en ${etiquetaMes}`;
+            filtrados = filtrados.filter(d => String(d["Tipo de gasto"]).toLowerCase() === String(valorFiltro).toLowerCase());
+        }
+
+        registrosModalActuales = filtrados;
+
+        document.getElementById("modalTitulo").textContent = titulo;
+        document.getElementById("modalSubtitulo").textContent = subtitulo;
+        document.getElementById("modalBuscador").value = "";
+
+        renderizarTablaModal(registrosModalActuales);
+        document.getElementById("modalDetalle").classList.add("active");
+    }
+
+    function renderizarTablaModal(lista) {
+        const body = document.getElementById("bodyModalDetalle");
+        body.innerHTML = "";
+
+        let total = 0;
+
+        if(lista.length === 0) {
+            body.innerHTML = `<tr><td colspan="5" class="no-data">No hay registros para este filtro.</td></tr>`;
+        } else {
+            lista.forEach(r => {
+                total += r["Valor de cuota"];
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${r.Fecha || '-'}</td>
+                    <td style="text-align: left; font-weight: 500;">${r.Concepto}</td>
+                    <td><span class="badge-tag">${r["Tipo de pago"]}</span></td>
+                    <td>${r["Tipo de gasto"]}</td>
+                    <td style="font-weight: 700; color: #f48fb1;">${fMoneda(r["Valor de cuota"])}</td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        document.getElementById("modalTotalMonto").textContent = fMoneda(total);
+    }
+
+    function filtrarTablaModal() {
+        const q = document.getElementById("modalBuscador").value.toLowerCase();
+        const filtrados = registrosModalActuales.filter(r => 
+            String(r.Concepto).toLowerCase().includes(q) ||
+            String(r["Tipo de pago"]).toLowerCase().includes(q) ||
+            String(r["Tipo de gasto"]).toLowerCase().includes(q)
+        );
+        renderizarTablaModal(filtrados);
+    }
+
+    function cerrarModal() {
+        document.getElementById("modalDetalle").classList.remove("active");
+    }
+
+    function calcularProyeccionCuotas(mesCorte) {
+        const contenedorTarjeta = document.getElementById("contenedorCuotas");
+        const contenedorMercado = document.getElementById("contenedorCuotasMercado");
+        
+        if (contenedorTarjeta) contenedorTarjeta.innerHTML = "";
+        if (contenedorMercado) contenedorMercado.innerHTML = "";
+
+        const meses = obtenerMesesUnicos();
+        const mesesFuturos = meses.filter(m => m > mesCorte).slice(0, 4);
+
+        if(mesesFuturos.length === 0) {
+            if (contenedorTarjeta) contenedorTarjeta.innerHTML = "<p class='no-data'>No hay cuotas programadas para los meses siguientes.</p>";
+            if (contenedorMercado) contenedorMercado.innerHTML = "<p class='no-data'>No hay cuotas programadas para los meses siguientes.</p>";
+            return;
+        }
+
+        let tieneTarjeta = false;
+        let tieneMercado = false;
+
+        mesesFuturos.forEach(mes => {
+            const partes = mes.split("-");
+
+            const cuotasTarjeta = datosGlobales.filter(d => 
+                d.Mes === mes && 
+                d["Gasto/Ingreso"] === "Gasto" && 
+                String(d["Tipo de pago"]).toLowerCase().includes("tarjeta")
+            );
+
+            if(cuotasTarjeta.length > 0 && contenedorTarjeta) {
+                tieneTarjeta = true;
+                const totalTarjeta = cuotasTarjeta.reduce((a,c) => a + c["Valor de cuota"], 0);
+                const item = document.createElement("div");
+                item.className = "cuota-futura-item";
+                item.innerHTML = `
+                    <div class="cuota-meta">
+                        <span class="cuota-mes">${partes[1]}/${partes[0]}</span>
+                        <span class="cuota-cant">${cuotasTarjeta.length} consumos programados</span>  
+                    </div>
+                    <div class="cuota-monto">${fMoneda(totalTarjeta)}</div>
+                `;
+                contenedorTarjeta.appendChild(item);
+            }
+
+            const cuotasMercado = datosGlobales.filter(d => 
+                d.Mes === mes && 
+                d["Gasto/Ingreso"] === "Gasto" && 
+                String(d["Tipo de pago"]).toLowerCase().includes("mercado")
+            );
+
+            if(cuotasMercado.length > 0 && contenedorMercado) {
+                tieneMercado = true;
+                const totalMercado = cuotasMercado.reduce((a,c) => a + c["Valor de cuota"], 0);
+                const item = document.createElement("div");
+                item.className = "cuota-futura-item cuota-mercado-item";
+                item.innerHTML = `
+                    <div class="cuota-meta">
+                        <span class="cuota-mes">${partes[1]}/${partes[0]}</span>
+                        <span class="cuota-cant">${cuotasMercado.length} consumos programados</span>  
+                    </div>
+                    <div class="cuota-monto">${fMoneda(totalMercado)}</div>
+                `;
+                contenedorMercado.appendChild(item);
+            }
+        });
+
+        if (!tieneTarjeta && contenedorTarjeta) {
+            contenedorTarjeta.innerHTML = "<p class='no-data'>No hay cuotas de tarjeta programadas.</p>";
+        }
+        if (!tieneMercado && contenedorMercado) {
+            contenedorMercado.innerHTML = "<p class='no-data'>No hay cuotas de Mercado Crédito programadas.</p>";
+        }
+    }
+
+    function calcularGastosRegulares() {
+        const contenedor = document.getElementById("contenedorFijos");
+        if (!contenedor) return;
+        contenedor.innerHTML = "";
+
+        const registrosFijos = datosGlobales.filter(d => {
+            if (d["Gasto/Ingreso"] !== "Gasto") return false;
+            const tipoGasto = String(d["Tipo de gasto"]).toLowerCase().trim();
+            return tipoGasto === "servicios hogar" || 
+                   tipoGasto === "servicios míos" || 
+                   tipoGasto === "servicios mios";
+        });
+
+        if(registrosFijos.length === 0) {
+            contenedor.innerHTML = "<p class='no-data'>No se detectaron servicios registrados.</p>";
+            return;
+        }
+
+        const ultimosFijosMap = {};
+        registrosFijos.forEach(r => {
+            const conceptoNormalizado = r["Concepto"].trim();
+            const fechaMes = r["Mes"];
+            const tipoGasto = r["Tipo de gasto"].trim();
+            
+            if (!ultimosFijosMap[conceptoNormalizado] || fechaMes > ultimosFijosMap[conceptoNormalizado].mes) {
+                ultimosFijosMap[conceptoNormalizado] = {
+                    monto: r["Valor de cuota"],
+                    mes: fechaMes,
+                    categoria: tipoGasto
+                };
+            }
+        });
+
+        Object.keys(ultimosFijosMap).forEach(concepto => {
+            const itemData = ultimosFijosMap[concepto];
+            const item = document.createElement("div");
+            item.className = "fijo-item";
+            
+            const partes = itemData.mes.split("-");
+
+            item.innerHTML = `
+                <div class="fijo-meta">
+                    <span class="fijo-nombre">${concepto} <small style="opacity: 0.6; font-size: 0.75em;">(${itemData.categoria})</small></span>
+                    <span class="fijo-fecha">Último: ${partes[1]}/${partes[0]}</span>
+                </div>
+                <div class="fijo-monto">${fMoneda(itemData.monto)}</div>
+            `;
+            contenedor.appendChild(item);
+        });
+    }
+
+    window.addEventListener("DOMContentLoaded", inicializarDashboard);
+</script>
+</body>
+</html>
