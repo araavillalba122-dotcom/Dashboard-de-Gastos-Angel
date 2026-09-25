@@ -8,7 +8,8 @@
 
 body {
     min-height: 100vh;
-    background: linear-gradient(135deg, #0A192F 0%, #0F4C5C 100%);
+    /* Fondo degradado estilo Azul Marino Profundo a Azul Petróleo */
+    background: linear-gradient(135deg, #0A192F 0%, #0F2A38 100%);
     display: flex;
     justify-content: center;
     align-items: flex-start;
@@ -26,22 +27,23 @@ body {
 
 /* ================= GLASSMORPHISM BASE CARDS ================= */
 .glass-card {
-    background: rgba(10, 25, 47, 0.45);
+    background: rgba(255, 255, 255, 0.04);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 20px;
     padding: 18px;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
 }
 
 .header-main {
     text-align: center;
-    background: rgba(16, 185, 129, 0.12); 
-    border: 1px solid rgba(16, 185, 129, 0.3);
+    /* Tono Esmeralda Oscuro de acento para la cabecera */
+    background: rgba(16, 185, 129, 0.08); 
+    border: 1px solid rgba(16, 185, 129, 0.25);
 }
 .header-main h1 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px; color: #F8FAFC; }
-.header-main p { font-size: 0.85rem; color: rgba(248, 250, 252, 0.7); margin-top: 2px; }
+.header-main p { font-size: 0.85rem; color: rgba(248, 250, 252, 0.6); margin-top: 2px; }
 
 h2 {
     font-size: 1rem;
@@ -53,7 +55,7 @@ h2 {
 
 .subtitle {
     font-size: 0.75rem;
-    color: rgba(248, 250, 252, 0.55);
+    color: rgba(248, 250, 252, 0.5);
     margin-top: -8px;
     margin-bottom: 12px;
 }
@@ -68,7 +70,7 @@ h2 {
 
 /* ================= GLASSMORPH SELECTORS ================= */
 select {
-    background: rgba(22, 78, 99, 0.4);
+    background: rgba(15, 76, 92, 0.3);
     border: 1px solid rgba(52, 211, 153, 0.3);
     color: #F8FAFC;
     padding: 6px 10px;
@@ -89,8 +91,8 @@ select option { background: #0A192F; color: #F8FAFC; }
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed rgba(52, 211, 153, 0.25);
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px dashed rgba(255, 255, 255, 0.15);
 }
 .filter-section label { font-size: 0.9rem; font-weight: 500; }
 
@@ -103,8 +105,8 @@ select option { background: #0A192F; color: #F8FAFC; }
 }
 .kpi-box {
     flex: 1;
-    background: rgba(15, 76, 92, 0.25);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 12px;
     padding: 8px;
     display: flex;
@@ -113,7 +115,7 @@ select option { background: #0A192F; color: #F8FAFC; }
 }
 .kpi-title {
     font-size: 0.65rem;
-    color: rgba(248, 250, 252, 0.6);
+    color: rgba(248, 250, 252, 0.5);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 2px;
@@ -122,7 +124,8 @@ select option { background: #0A192F; color: #F8FAFC; }
 .kpi-value {
     font-size: 0.85rem;
     font-weight: 700;
-    color: #34D399; /* Verde lima/esmeralda brillante */
+    /* Verde Esmeralda en lugar del rosa/magenta anterior */
+    color: #34D399;
 }
 
 /* ================= TABLES & FINANCIAL SPREADSHEETS ================= */
@@ -144,20 +147,22 @@ table th, table td {
     text-align: center;
 }
 table th {
-    background: rgba(16, 185, 129, 0.2);
+    /* Encabezado Azul Acero / Petróleo */
+    background: rgba(15, 76, 92, 0.4);
     color: rgba(248, 250, 252, 0.9);
     font-size: 0.75rem;
-    font-weight: 600;
-    border-bottom: 1px solid rgba(52, 211, 153, 0.2);
+    font-weight: 500;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 table td {
     font-size: 0.75rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 table td:first-child, table th:first-child {
     position: sticky;
     left: 0;
-    background: #0D1F38;
+    /* Fondo oscuro sólido para columna fija */
+    background: #0D223A;
     z-index: 2;
     font-weight: bold;
 }
@@ -170,15 +175,15 @@ table td:first-child, table th:first-child {
     transition: all 0.2s ease;
 }
 .clickable-cell:hover {
-    background: rgba(16, 185, 129, 0.25);
+    background: rgba(52, 211, 153, 0.15);
     color: #ffffff;
 }
 
 /* ================= CONTROL DE PESTAÑAS (TABS) ================= */
 .tabs-container {
     display: flex;
-    background: rgba(10, 25, 47, 0.6);
-    border: 1px solid rgba(16, 185, 129, 0.2);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 12px;
     padding: 4px;
     margin-bottom: 14px;
@@ -187,7 +192,7 @@ table td:first-child, table th:first-child {
     flex: 1;
     background: transparent;
     border: none;
-    color: rgba(248, 250, 252, 0.65);
+    color: rgba(248, 250, 252, 0.6);
     padding: 8px 4px;
     font-size: 0.8rem;
     font-weight: 600;
@@ -198,10 +203,11 @@ table td:first-child, table th:first-child {
     text-align: center;
 }
 .tab-btn.active {
-    background: #10B981; /* Verde Esmeralda */
+    /* Botón activo en Verde Esmeralda Neutro */
+    background: #10B981;
     color: #0A192F;
     font-weight: 700;
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 .tab-content { display: none; }
 .tab-content.active { 
@@ -224,17 +230,19 @@ table td:first-child, table th:first-child {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(15, 76, 92, 0.2);
-    border-left: 4px solid #10B981; /* Borde verde esmeralda */
+    background: rgba(255, 255, 255, 0.03);
+    /* Borde Verde Esmeralda */
+    border-left: 4px solid #10B981;
     padding: 10px 14px;
     border-radius: 8px;
 }
 .cuota-mercado-item {
-    border-left: 4px solid #84A98C; /* Verde aceituna suave/oliva */
+    /* Borde Verde Aceituna / Bosque Sólido */
+    border-left: 4px solid #556B2F;
 }
 .cuota-meta { display: flex; flex-direction: column; }
 .cuota-mes { font-size: 0.9rem; font-weight: 600; }
-.cuota-cant { font-size: 0.75rem; color: rgba(248, 250, 252, 0.55); }
+.cuota-cant { font-size: 0.75rem; color: rgba(248, 250, 252, 0.5); }
 .cuota-monto { font-size: 0.95rem; font-weight: 700; color: #34D399; }
 .no-data { font-size: 0.8rem; color: rgba(248, 250, 252, 0.4); text-align: center; padding: 10px; }
 
@@ -258,7 +266,7 @@ table td:first-child, table th:first-child {
 }
 .fijo-meta { display: flex; flex-direction: column; }
 .fijo-nombre { font-size: 0.85rem; font-weight: 500; }
-.fijo-fecha { font-size: 0.7rem; color: rgba(248, 250, 252, 0.45); }
+.fijo-fecha { font-size: 0.7rem; color: rgba(248, 250, 252, 0.4); }
 .fijo-monto { font-size: 0.85rem; font-weight: 600; color: #E2E8F0; }
 
 /* ================= MODAL DRILL-DOWN POPUP ================= */
@@ -268,7 +276,7 @@ table td:first-child, table th:first-child {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(10, 25, 47, 0.85);
+    background: rgba(5, 12, 22, 0.85);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     display: flex;
@@ -292,8 +300,8 @@ table td:first-child, table th:first-child {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    background: #0A192F;
-    border: 1px solid rgba(16, 185, 129, 0.4);
+    background: #0D1F35;
+    border: 1px solid rgba(16, 185, 129, 0.3);
     box-sizing: border-box;
     overflow: hidden;
 }
@@ -320,14 +328,14 @@ table td:first-child, table th:first-child {
     box-sizing: border-box;
     padding: 10px 12px;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(52, 211, 153, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 10px;
     color: #F8FAFC;
     font-size: 0.85rem;
     outline: none;
 }
 .modal-filter input:focus {
-    border-color: #10B981;
+    border-color: #34D399;
 }
 .modal-body {
     max-height: 45vh;
