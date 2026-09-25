@@ -325,8 +325,8 @@
             datasets.push({
                 label: 'Sueldo / Ingreso',
                 data: datosSueldo,
-                backgroundColor: 'rgba(244, 143, 177, 0.6)',
-                borderColor: '#f48fb1',
+                backgroundColor: 'rgba(16, 185, 129, 0.7)', // Verde Esmeralda
+                borderColor: '#10B981',
                 borderWidth: 2,
                 borderRadius: 8
             });
@@ -335,8 +335,8 @@
             datasets.push({
                 label: 'Gasto Total',
                 data: datosGastos,
-                backgroundColor: 'rgba(216, 27, 96, 0.7)',
-                borderColor: '#d81b60',
+                backgroundColor: 'rgba(30, 58, 138, 0.7)', // Azul Acero
+                borderColor: '#1E3A8A',
                 borderWidth: 2,
                 borderRadius: 8
             });
@@ -351,10 +351,10 @@
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: '#fff' } } },
+                plugins: { legend: { labels: { color: '#F8FAFC' } } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#fff' } },
-                    y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#fff' } }
+                    x: { grid: { display: false }, ticks: { color: '#F8FAFC' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#F8FAFC' } }
                 }
             }
         });
@@ -447,7 +447,7 @@
             const etiquetaMes = `<strong>${m}/${anio}</strong>`;
             
             const styleSobrante = sobrante >= 0 
-                ? "background-color: rgba(74, 222, 128, 0.15); color: #4ade80; font-weight: bold;" 
+                ? "background-color: rgba(16, 185, 129, 0.15); color: #10B981; font-weight: bold;" 
                 : "background-color: rgba(220, 38, 38, 0.2); color: #f87171; font-weight: bold;";
 
             const trBalance = document.createElement("tr");
@@ -528,14 +528,14 @@
                     labels: Object.keys(mediosMap),
                     datasets: [{
                         data: Object.values(mediosMap),
-                        backgroundColor: ['#d81b60', '#f48fb1', '#8e24aa', '#00acc1', '#5e35b1'],
+                        backgroundColor: ['#10B981', '#1E3A8A', '#0F4C5C', '#34D399', '#164E63'], // Paleta Azul/Verde
                         borderWidth: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } },
+                    plugins: { legend: { position: 'bottom', labels: { color: '#F8FAFC' } } },
                     onClick: (evt, activeElements) => {
                         if (activeElements.length > 0) {
                             const index = activeElements[0].index;
@@ -564,8 +564,8 @@
                     datasets: [{
                         label: 'Monto ($)',
                         data: Object.values(tiposMap),
-                        backgroundColor: 'rgba(255, 255, 255, 0.35)',
-                        borderColor: 'rgba(255, 255, 255, 0.8)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.5)', // Verde Esmeralda translúcido
+                        borderColor: '#10B981',
                         borderWidth: 1,
                         borderRadius: 6
                     }]
@@ -576,8 +576,8 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#fff' } },
-                        y: { ticks: { color: '#fff' } }
+                        x: { grid: { color: 'rgba(255,255,255,0.1)' }, ticks: { color: '#F8FAFC' } },
+                        y: { ticks: { color: '#F8FAFC' } }
                     },
                     onClick: (evt, activeElements) => {
                         if (activeElements.length > 0) {
@@ -645,7 +645,7 @@
                     <td style="text-align: left; font-weight: 500;">${r.Concepto}</td>
                     <td><span class="badge-tag">${r["Tipo de pago"]}</span></td>
                     <td>${r["Tipo de gasto"]}</td>
-                    <td style="font-weight: 700; color: #f48fb1;">${fMoneda(r["Valor de cuota"])}</td>
+                    <td style="font-weight: 700; color: #10B981;">${fMoneda(r["Valor de cuota"])}</td>
                 `;
                 body.appendChild(tr);
             });
